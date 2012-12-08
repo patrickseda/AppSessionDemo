@@ -3,7 +3,7 @@
  *
  * Sample usage:
  *     // Load the module and create an instance.
- *     var AppSession = require('AppSession').AppSession;
+ *     var AppSession = require('AppSession');
  *     var appSession = new AppSession();
  *     appSession.setTimeoutMs(30000); // A value of 0 means never timeout.
  *
@@ -24,7 +24,7 @@
  *
  * @author Patrick Seda
  */
-exports.AppSession = function() {
+var AppSession = function() {
 	// +-----------------------+
 	// | Private members.      |
 	// +-----------------------+
@@ -149,3 +149,5 @@ exports.AppSession = function() {
 		endSession : endSession
 	};
 };
+
+module.exports = AppSession;

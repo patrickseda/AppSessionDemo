@@ -1,7 +1,7 @@
 /**
  * Sample Titanium app demonstrating the usage of the AppSession module.
  */
-var AppSession = require('AppSession').AppSession,
+var AppSession = require('AppSession'),
 	appSession = new AppSession();
 appSession.setTimeoutMs(10000); // A value of 0 means never timeout.
 	
