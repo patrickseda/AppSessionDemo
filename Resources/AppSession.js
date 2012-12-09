@@ -104,9 +104,7 @@ var AppSession = function() {
 	
 	// Start a new Session.
 	var startNewSession = function(userIdOfSession) {
-		if (isSessionLive()) {
-			endSession();
-		}
+		endSession();
 		var userId = userIdOfSession ? userIdOfSession : 0;
 		Ti.App.Properties.setString(userIdKey, userId);
 		lastAccessTime = new Date(); // now
