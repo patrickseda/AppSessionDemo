@@ -7,42 +7,42 @@
  *     var appSession = new AppSession();
  *     appSession.setTimeoutMs(30000); // A value of 0 means never timeout.
  *
- *     // Start a new Session, e.g. after a login.
- *     // You can track the logged-in user if you wish.
- *     appSession.startNewSession('user67');
+ *     // Start a new Session, e.g. after an app login.
+ *     // You can track session-specific info if you wish, just provide some object.
+ *     appSession.startNewSession({username : 'pxtrick'});
  *
  *     // Touch the Session whenever an app UI events occurs.
  *     appSession.touch();
  *
  *     // Inspect Session values.
- *     appSession.getUserId();  // Will be 'user67'.
- *     appSession.isLive();     // Will be 'true' as long as there is 'touch' activity.
+ *     appSession.getSessionInfo(); // Will be {username : 'pxtrick'}, provided to session creation.
+ *     appSession.isLive();         // Will be 'true' as long as there is 'touch' activity.
  *
- *     // Terminate the Session, e.g. after a logout.
+ *     // Terminate the Session, e.g. after an app logout.
  *     appSession.endSession();
  *     appSession.isLive();  // Will be 'false'.
  *
- * @author Patrick Seda
+ * @author Patrick Seda - @pxtrick
  */
 var AppSession = function() {
 	// +-----------------------+
 	// | Private members.      |
 	// +-----------------------+
 	// The TTL for a Session. A value of 0 means never timeout.
-	var sessionTimeoutMs = 600000; // 600000 ms = 10 min
+	var sessionTimeoutMs = 600000; // Default to 600000 ms (10 min)
 
 	var lastAccessTime = null;
-	var userIdKey = 'SESSION_USER_ID';
 	var heartbeatTimer = null;
+	var sessionInfo = null;
 
 	// Determine if the Session can ever timeout.
 	var usingTimeout = function() {
 		return sessionTimeoutMs > 0;
 	};
 	
-	// Remove the entry for the UserID.
-	var clearUserId = function() {
-		Ti.App.Properties.removeProperty(userIdKey);
+	// Remove the entry for the sessionInfo.
+	var clearSessionInfo = function() {
+		sessionInfo = null;
 	};
 	
 	// Start the internal heartbeat thread (if timeout is enabled).
@@ -80,20 +80,20 @@ var AppSession = function() {
 		}
 	};
 	
-	// Get the UserID for the Session.
-	var getUserId = function() {
+	// Get the sessionInfo for the Session.
+	var getSessionInfo = function() {
 		if (isSessionLive()) {
 			touchSession();
 		} else {
 			endSession();
 		}
-		return Ti.App.Properties.getString(userIdKey, null);
+		return sessionInfo;
 	};
 	
 	// Set the Session timeout.
-	function setTimeoutMs(timeoutMs) {
-		if (timeoutMs && (timeoutMs >= 0)) {
-			sessionTimeoutMs = timeoutMs;
+	function setTimeoutMs(_timeoutMs) {
+		if (_timeoutMs && (_timeoutMs >= 0)) {
+			sessionTimeoutMs = _timeoutMs;
 		}
 	};
 	
@@ -103,10 +103,9 @@ var AppSession = function() {
 	};
 	
 	// Start a new Session.
-	var startNewSession = function(userIdOfSession) {
+	var startNewSession = function(_sessionInfo) {
 		endSession();
-		var userId = userIdOfSession ? userIdOfSession : 0;
-		Ti.App.Properties.setString(userIdKey, userId);
+		_sessionInfo && (sessionInfo = _sessionInfo);
 		lastAccessTime = new Date(); // now
 		startHeartbeat();
 	};
@@ -127,7 +126,7 @@ var AppSession = function() {
 	var endSession = function() {
 		stopHeartbeat();
 		lastAccessTime = null;
-		clearUserId();
+		clearSessionInfo();
 		Ti.API.info('Your Session has ended!');
 	};
 	
@@ -136,7 +135,7 @@ var AppSession = function() {
 	// | Public API.           |
 	// +-----------------------+
 	return {
-		getUserId : getUserId,
+		getSessionInfo : getSessionInfo,
 
 		setTimeoutMs : setTimeoutMs,
 		getTimeoutMs : getTimeoutMs,
