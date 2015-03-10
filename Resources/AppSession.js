@@ -4,7 +4,7 @@
  * Sample usage:
  *     // Load the module and create an instance.
  *     var AppSession = require('AppSession');
- *     var appSession = new AppSession();
+ *     var appSession = new AppSession({timeoutMs : 0, sessionTimedOutCB : someCB});
  *     appSession.setTimeoutMs(30000); // A value of 0 means never timeout.
  *
  *     // Start a new Session, e.g. after an app login.
@@ -24,12 +24,17 @@
  *
  * @author Patrick Seda - @pxtrick
  */
-var AppSession = function() {
+var AppSession = function(args) {
 	// +-----------------------+
 	// | Private members.      |
 	// +-----------------------+
+	var args = args || {};
 	// The TTL for a Session. A value of 0 means never timeout.
 	var sessionTimeoutMs = 600000; // Default to 600000 ms (10 min)
+	var sessionTimedOutCB = null;
+	
+	setTimeoutMs(args.timeoutMs);
+	args.sessionTimedOutCB && (sessionTimedOutCB = args.sessionTimedOutCB);
 
 	var lastAccessTime = null;
 	var heartbeatTimer = null;
@@ -54,6 +59,7 @@ var AppSession = function() {
 				if (!isSessionLive()) {
 					// Session is dead, perform internal cleanup.
 					endSession();
+					sessionTimedOutCB && sessionTimedOutCB();
 				}
 			}, heartbeatMs);
 		}
